@@ -35,6 +35,74 @@
     }));
   }
 
+  function depGraph() {
+    var g = MUI.mods.graph();
+    var nodes = g.nodes, edges = g.edges;
+    var byId = {};
+    nodes.forEach(function (n) { byId[n.id] = n; });
+    var cache = {};
+    function depth(id, seen) {
+      if (cache[id] != null) return cache[id];
+      seen = seen || {};
+      if (seen[id]) return 0;
+      seen[id] = 1;
+      var n = byId[id]; if (!n) return 0;
+      var reqs = (n.requires || []).filter(function (d) { return byId[d]; });
+      var d = reqs.length ? 1 + Math.max.apply(null, reqs.map(function (r) { return depth(r, seen); })) : 0;
+      cache[id] = d; return d;
+    }
+    var levels = {};
+    nodes.forEach(function (n) { var d = depth(n.id); (levels[d] || (levels[d] = [])).push(n); });
+    var keys = Object.keys(levels).map(Number).sort(function (a, b) { return a - b; });
+    var nodeW = 158, nodeH = 46, colGap = 74, rowGap = 16, padX = 16, padY = 16;
+    var rows = 1;
+    keys.forEach(function (k) { rows = Math.max(rows, levels[k].length); });
+    var width = padX * 2 + Math.max(1, keys.length) * nodeW + Math.max(0, keys.length - 1) * colGap;
+    var height = padY * 2 + rows * nodeH + Math.max(0, rows - 1) * rowGap;
+    var pos = {};
+    keys.forEach(function (k, ci) {
+      levels[k].forEach(function (n, ri) { pos[n.id] = { x: padX + ci * (nodeW + colGap), y: padY + ri * (nodeH + rowGap) }; });
+    });
+
+    var svgEl = MUI.svg('svg', { class: 'depmap__svg', width: width, height: height, viewBox: '0 0 ' + width + ' ' + height });
+    var defs = MUI.svg('defs');
+    var marker = MUI.svg('marker', { id: 'dep-arrow', viewBox: '0 0 8 8', refX: 7, refY: 4, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' });
+    marker.appendChild(MUI.svg('path', { d: 'M0,0 L8,4 L0,8 z', style: 'fill:var(--accent-2)' }));
+    defs.appendChild(marker); svgEl.appendChild(defs);
+
+    edges.forEach(function (e) {
+      var a = pos[e.from], b = pos[e.to]; if (!a || !b) return;
+      var sx = a.x, sy = a.y + nodeH / 2, ex = b.x + nodeW, ey = b.y + nodeH / 2, mx = (sx + ex) / 2;
+      svgEl.appendChild(MUI.svg('path', {
+        class: 'depmap__edge' + (e.kind === 'optional' ? ' depmap__edge--optional' : ''),
+        d: 'M' + sx + ',' + sy + ' C' + mx + ',' + sy + ' ' + mx + ',' + ey + ' ' + ex + ',' + ey,
+        'marker-end': 'url(#dep-arrow)'
+      }));
+    });
+
+    nodes.forEach(function (n) {
+      var p = pos[n.id]; if (!p) return;
+      var info = MUI.mods.info(n.id) || {};
+      var grp = MUI.svg('g', {
+        class: 'depmap__node depmap__node--' + (n.state === 'active' ? 'active' : n.state === 'error' ? 'error' : 'inactive'),
+        transform: 'translate(' + p.x + ',' + p.y + ')'
+      });
+      grp.appendChild(MUI.svg('rect', { width: nodeW, height: nodeH }));
+      grp.appendChild(MUI.svg('circle', { class: 'depmap__dot', cx: 13, cy: 15, r: 3.6 }));
+      grp.appendChild(MUI.svg('text', { class: 'depmap__name', x: 24, y: 19, text: String(info.name || n.id).slice(0, 15) }));
+      grp.appendChild(MUI.svg('text', { class: 'depmap__ver', x: 13, y: 36, text: n.id }));
+      grp.addEventListener('click', function () { openModuleSheet(n.id); });
+      svgEl.appendChild(grp);
+    });
+
+    var legend = MUI.h('div', { class: 'depmap__legend' }, [
+      MUI.h('span', {}, [MUI.h('i'), MUI.h('span', { text: '依赖' })]),
+      MUI.h('span', {}, [MUI.h('i', { class: 'dash' }), MUI.h('span', { text: '可选依赖' })]),
+      MUI.h('span', { class: 'faint', text: '节点描边表示模块状态，点击查看详情' })
+    ]);
+    return MUI.h('div', {}, [MUI.h('div', { class: 'depmap' }, svgEl), legend]);
+  }
+
   function openModuleSheet(id) {
     var rec = MUI.mods.get(id);
     if (!rec) return;
@@ -137,27 +205,15 @@
           return row;
         })));
 
-        var graph = MUI.mods.graph();
-        root.appendChild(ui.grid({ min: '340px', children: [
-          ui.section({ title: '诊断', icon: 'activity', children: ui.card({ flush: true, children: h('div', { class: 'stack', style: 'gap:8px;padding:14px' }, MUI.mods.diagnostics().map(function (d) {
-            return h('div', { class: 'row', style: 'gap:8px' }, [
-              h('span', { class: 'mono', style: 'flex:1', text: d.id }),
-              ui.badge({ text: d.dependencies + ' 依赖' }),
-              ui.badge({ text: d.dependents + ' 被依赖' }),
-              ui.statusPill({ state: d.state, label: stateLabel(d.state) })
-            ]);
-          })) }) }),
-          ui.section({ title: '依赖图', icon: 'gitBranch', children: ui.card({ flush: true, children: h('div', { class: 'stack', style: 'gap:6px;padding:14px' },
-            graph.edges.length ? graph.edges.map(function (e) {
-              return h('div', { class: 'row', style: 'gap:7px;font-family:var(--mono);font-size:var(--fs-sm)' }, [
-                h('span', { text: e.from }),
-                h('span', { class: 'faint', text: e.kind === 'optional' ? '⇢' : '→' }),
-                h('span', { text: e.to }),
-                e.kind === 'optional' ? ui.badge({ text: 'optional' }) : null
-              ]);
-            }) : [h('span', { class: 't-caption', text: '暂无依赖关系' })]
-          ) }) })
-        ] }));
+        root.appendChild(ui.section({ title: '诊断', icon: 'activity', children: ui.card({ flush: true, children: h('div', { class: 'stack', style: 'gap:8px;padding:14px' }, MUI.mods.diagnostics().map(function (d) {
+          return h('div', { class: 'row', style: 'gap:8px' }, [
+            h('span', { class: 'mono', style: 'flex:1', text: d.id }),
+            ui.badge({ text: d.dependencies + ' 依赖' }),
+            ui.badge({ text: d.dependents + ' 被依赖' }),
+            ui.statusPill({ state: d.state, label: stateLabel(d.state) })
+          ]);
+        })) }) }));
+        root.appendChild(ui.section({ title: '依赖图', icon: 'gitBranch', desc: '按依赖深度分层，点击节点查看模块详情', children: depGraph() }));
       }
       paint();
       MUI.bus.on('mods:changed', paint);

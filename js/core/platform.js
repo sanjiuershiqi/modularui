@@ -288,6 +288,11 @@
      Command registry
      ====================================================================== */
   var commands = new Map();
+  var recentIds = MUI.store.get('recentCommands', []) || [];
+  function rememberCommand(id) {
+    recentIds = [id].concat(recentIds.filter(function (x) { return x !== id; })).slice(0, 6);
+    MUI.store.set('recentCommands', recentIds);
+  }
   var commandAPI = {
     register: function (cmd) {
       if (!cmd || !cmd.id) throw new Error('[commands] id required');
@@ -305,8 +310,10 @@
       if (!c) return false;
       if (c.when && !c.when()) return false;
       try { c.run(c); } catch (e) { console.error('[command:' + c.id + ']', e); }
+      if (c.id && c.id.indexOf('nav.') !== 0) rememberCommand(c.id);
       return true;
     },
+    recent: function () { return recentIds.map(function (id) { return commands.get(id); }).filter(Boolean); },
     search: function (query) {
       var q = String(query || '').trim().toLowerCase();
       var all = commandAPI.enabled();

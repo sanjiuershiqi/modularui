@@ -204,6 +204,7 @@
       ]),
       h('span', { class: 'toast__close', onClick: function () { close(); } }, icon('x', 14))
     ]);
+    while (toastStack.children.length >= 4) { var old = toastStack.firstElementChild; if (old) old.remove(); else break; }
     toastStack.appendChild(el);
     requestAnimationFrame(function () { el.classList.add('is-in'); });
     var timer, closed = false;
@@ -214,7 +215,10 @@
       setTimeout(function () { el.remove(); }, 220);
     }
     pushEsc(close);
-    if (o.duration !== 0) timer = setTimeout(close, o.duration || 2600);
+    function arm() { if (o.duration !== 0) timer = setTimeout(close, o.duration || 2600); }
+    arm();
+    el.addEventListener('mouseenter', function () { clearTimeout(timer); });
+    el.addEventListener('mouseleave', function () { clearTimeout(timer); timer = setTimeout(close, 1200); });
     return close;
   }
 
@@ -480,7 +484,19 @@
           list.appendChild(row);
         });
       }
-      function update(q) { results = MUI.commands.search(q).slice(0, 60); active = 0; paint(); }
+      function update(q) {
+        var res = MUI.commands.search(q);
+        if (!String(q || '').trim()) {
+          var seen = {};
+          var recents = MUI.commands.recent().map(function (c) {
+            seen[c.id] = 1;
+            return Object.assign({}, c, { group: '最近', keywords: (c.keywords || '') + ' recent' });
+          });
+          res = recents.concat(res.filter(function (c) { return !seen[c.id]; }));
+        }
+        results = res.slice(0, 60);
+        active = 0; paint();
+      }
       function run(cmd) { close(); setTimeout(function () { MUI.commands.run(cmd); }, 50); }
       input.addEventListener('input', function () { update(input.value); });
       input.addEventListener('keydown', function (e) {

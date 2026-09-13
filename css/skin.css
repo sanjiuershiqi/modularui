@@ -248,6 +248,36 @@
 .app-footer__mark::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(-45deg, rgba(255,255,255,.16) 0 3px, transparent 3px 8px); }
 .app-footer__mark svg { position: relative; z-index: 1; }
 
+/* interactive chart hover */
+.chartwrap { position: relative; }
+.chart__cross { stroke: var(--border-strong); stroke-width: 1; stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
+.chart__dot--hover { transition: opacity .1s; }
+.chart-tip {
+  position: absolute; transform: translate(-50%, -140%); pointer-events: none; white-space: nowrap;
+  padding: 3px 7px; background: var(--text); color: var(--bg); border-radius: 0;
+  font-family: var(--mono); font-size: var(--fs-2xs); box-shadow: var(--hard-sm);
+  transition: opacity .12s;
+}
+
+/* dependency graph */
+.depmap { position: relative; border: 1px solid var(--border-strong); background: var(--surface-inset); overflow: auto; }
+.depmap__svg { display: block; }
+.depmap__edge { fill: none; stroke: var(--accent-2); stroke-width: 1.4; }
+.depmap__edge--optional { stroke-dasharray: 4 4; stroke: var(--text-3); }
+.depmap__node rect { fill: var(--surface); stroke: var(--border-strong); stroke-width: 1; cursor: pointer; }
+.depmap__node:hover rect { stroke: var(--accent); }
+.depmap__node--active rect { stroke: var(--success); }
+.depmap__node--error rect { stroke: var(--danger); }
+.depmap__node--inactive rect { stroke: var(--border-strong); }
+.depmap__name { font-family: var(--font); font-size: 12px; font-weight: 650; fill: var(--text); }
+.depmap__ver { font-family: var(--mono); font-size: 9.5px; fill: var(--text-3); }
+.depmap__dot { fill: var(--text-3); }
+.depmap__node--active .depmap__dot { fill: var(--success); }
+.depmap__node--error .depmap__dot { fill: var(--danger); }
+.depmap__legend { display: flex; flex-wrap: wrap; gap: 14px; padding: 10px 12px; border-top: 1px solid var(--border); font-size: var(--fs-sm); color: var(--text-2); }
+.depmap__legend i { display: inline-block; width: 16px; height: 2px; background: var(--accent-2); vertical-align: middle; margin-right: 6px; }
+.depmap__legend i.dash { background: repeating-linear-gradient(90deg, var(--text-3) 0 4px, transparent 4px 8px); }
+
 /* double-offset tag label (hyp-banner-sub b) */
 .kpi__label {
   display: inline-block; width: fit-content; padding: 3px 8px;

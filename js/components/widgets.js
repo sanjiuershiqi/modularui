@@ -319,7 +319,30 @@
     el.appendChild(svg('polygon', { points: area.join(' '), fill: 'url(#' + uid + ')' }));
     el.appendChild(svg('polyline', { class: 'chart__line', points: line.join(' '), 'vector-effect': 'non-scaling-stroke' }));
     if (data.length) el.appendChild(svg('circle', { class: 'chart__dot', cx: x(data.length - 1), cy: y(data[data.length - 1]), r: 3.4, 'vector-effect': 'non-scaling-stroke' }));
-    return h('div', { style: 'width:100%' }, [el, labels.length ? h('div', { class: 'row', style: 'justify-content:space-between;margin-top:6px' }, labels.map(function (l) { return h('span', { class: 'faint', style: 'font-family:var(--mono);font-size:var(--fs-2xs)', text: l }); })) : null]);
+
+    /* hover crosshair + value tooltip */
+    var cross = svg('line', { class: 'chart__cross', x1: 0, x2: 0, y1: pad, y2: hgt - pad, style: 'opacity:0' });
+    var hoverDot = svg('circle', { class: 'chart__dot chart__dot--hover', cx: 0, cy: 0, r: 3.8, style: 'opacity:0;fill:var(--accent);stroke:var(--surface);stroke-width:2' });
+    el.appendChild(cross); el.appendChild(hoverDot);
+    var tip = h('div', { class: 'chart-tip', style: 'opacity:0' });
+    var wrap = h('div', { class: 'chartwrap' }, [el, tip]);
+    function move(e) {
+      if (!data.length) return;
+      var rect = el.getBoundingClientRect();
+      var px = util.clamp((e.clientX - rect.left) / rect.width, 0, 1);
+      var idx = Math.round(px * (data.length - 1));
+      var cx = x(idx), cy = y(data[idx]);
+      cross.setAttribute('x1', cx); cross.setAttribute('x2', cx); cross.style.opacity = '1';
+      hoverDot.setAttribute('cx', cx); hoverDot.setAttribute('cy', cy); hoverDot.style.opacity = '1';
+      tip.textContent = (labels[idx] != null ? labels[idx] + ' · ' : '') + data[idx];
+      tip.style.opacity = '1';
+      tip.style.left = (rect.width === 0 ? 0 : (cx / w) * rect.width) + 'px';
+      tip.style.top = (rect.height === 0 ? 0 : (cy / hgt) * rect.height) + 'px';
+    }
+    function leave() { cross.style.opacity = '0'; hoverDot.style.opacity = '0'; tip.style.opacity = '0'; }
+    wrap.addEventListener('pointermove', move);
+    wrap.addEventListener('pointerleave', leave);
+    return h('div', { style: 'width:100%' }, [wrap, labels.length ? h('div', { class: 'row', style: 'justify-content:space-between;margin-top:6px' }, labels.map(function (l) { return h('span', { class: 'faint', style: 'font-family:var(--mono);font-size:var(--fs-2xs)', text: l }); })) : null]);
   });
 
   def('barChart', function (p) {
