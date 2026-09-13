@@ -130,6 +130,31 @@
     f.appendChild(MUI.ui.stripeBar());
   }
 
+  function openHelp() {
+    var rows = [
+      ['命令面板', 'mod+k'],
+      ['打开 / 关闭侧栏', 'mod+b'],
+      ['切换主题', 'mod+shift+l'],
+      ['快捷键帮助', 'mod+/'],
+      ['关闭弹层 / 抽屉', 'escape']
+    ];
+    var seen = {};
+    rows.forEach(function (r) { seen[r[0]] = 1; });
+    var extra = MUI.commands.list().filter(function (c) { return c.keybinding && c.id !== 'help.shortcuts' && !seen[c.title]; })
+      .map(function (c) { return [c.title, c.keybinding]; });
+    function row(label, combo) {
+      return h('div', { class: 'listitem' }, [
+        h('div', { class: 'listitem__main' }, h('div', { class: 'listitem__title', text: label })),
+        h('span', { class: 'kbd', text: MUI.keys.format(combo) })
+      ]);
+    }
+    MUI.overlay.sheet({
+      title: '键盘快捷键',
+      content: h('div', { class: 'list' }, rows.map(function (r) { return row(r[0], r[1]); })
+        .concat(extra.map(function (r) { return row(r[0], r[1]); })))
+    });
+  }
+
   function wire() {
     $('theme-btn').addEventListener('click', function () { theme.toggle(); });
     $('theme-btn-mobile').addEventListener('click', function () { theme.toggle(); });
@@ -181,6 +206,7 @@
       var mods = MUI.mods.list();
       Promise.all(mods.map(function (m) { return MUI.mods.reload(m.id); })).then(function () { MUI.overlay.toast('已重载 ' + mods.length + ' 个模块', 'success'); });
     } });
+    MUI.commands.register({ id: 'help.shortcuts', title: '键盘快捷键', subtitle: 'help.shortcuts', icon: 'command', group: '帮助', keybinding: 'mod+/', run: openHelp });
     MUI.commands.register({ id: 'debug.log', title: '在控制台打印内核', subtitle: 'console.log(MUI)', icon: 'terminal', group: '调试', run: function () { console.log(MUI); MUI.overlay.toast('已输出 MUI'); } });
     MUI.commands.register({ id: 'debug.graph', title: '打印模块依赖图', subtitle: 'mods.graph()', icon: 'gitBranch', group: '调试', run: function () { console.log(MUI.mods.graph()); MUI.overlay.toast('已输出依赖图'); } });
   }
@@ -200,6 +226,7 @@
     updateThemeBtn(); updateDensityBtn();
 
     MUI.keys.register('mod+k', function () { MUI.palette.open(); });
+    MUI.keys.register('mod+/', openHelp);
     MUI.keys.register('mod+shift+l', function () { theme.toggle(); });
     MUI.keys.register('mod+b', function () { $('sidebar').classList.contains('is-open') ? MUI.closeSidebar() : MUI.openSidebar(); });
     MUI.keys.register('escape', function () { MUI.closeSidebar(); }, { preventDefault: false });

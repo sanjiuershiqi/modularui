@@ -64,7 +64,10 @@
       levels[k].forEach(function (n, ri) { pos[n.id] = { x: padX + ci * (nodeW + colGap), y: padY + ri * (nodeH + rowGap) }; });
     });
 
-    var svgEl = MUI.svg('svg', { class: 'depmap__svg', width: width, height: height, viewBox: '0 0 ' + width + ' ' + height });
+    var svgEl = MUI.svg('svg', {
+      class: 'depmap__svg', width: width, height: height, viewBox: '0 0 ' + width + ' ' + height,
+      style: 'width:100%;max-width:' + width + 'px;height:auto;display:block'
+    });
     var defs = MUI.svg('defs');
     var marker = MUI.svg('marker', { id: 'dep-arrow', viewBox: '0 0 8 8', refX: 7, refY: 4, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' });
     marker.appendChild(MUI.svg('path', { d: 'M0,0 L8,4 L0,8 z', style: 'fill:var(--accent-2)' }));
