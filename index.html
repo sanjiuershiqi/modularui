@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark" data-density="cozy">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<meta name="theme-color" content="#0b0d12" />
+<title>ModularUI · 可扩展应用内核</title>
+<link rel="stylesheet" href="css/tokens.css" />
+<link rel="stylesheet" href="css/app.css" />
+<link rel="stylesheet" href="css/components.css" />
+<link rel="stylesheet" href="css/skin.css" />
+</head>
+<body>
+
+<div id="app" data-booting>
+  <aside class="app-sidebar" id="sidebar" aria-label="主导航">
+    <a class="brand" href="#home" data-brand>
+      <span class="brand__mark" data-brand-mark></span>
+      <span class="brand__meta">
+        <span class="brand__name">ModularUI</span>
+        <span class="brand__ver" data-brand-ver>v2.0.0</span>
+      </span>
+    </a>
+
+    <button class="command-trigger" id="command-trigger" type="button">
+      <span class="command-trigger__icon" data-ct-icon></span>
+      <span class="command-trigger__label">搜索或运行命令</span>
+      <kbd class="kbd" data-ct-kbd>⌘K</kbd>
+    </button>
+
+    <nav class="sidebar-nav" id="sidebar-nav" data-slot="sidebar.nav"></nav>
+    <div class="sidebar-foot" id="sidebar-foot">
+      <div class="sidebar-foot__status" id="sidebar-status"></div>
+      <div class="sidebar-foot__row">
+        <button class="iconbutton" id="theme-btn" type="button" data-tip="切换主题" data-tip-side="top"></button>
+        <button class="iconbutton" id="density-btn" type="button" data-tip="切换密度" data-tip-side="top"></button>
+        <span class="spacer"></span>
+        <span class="sidebar-foot__build mono" data-build></span>
+      </div>
+    </div>
+  </aside>
+
+  <div class="scrim" id="scrim"></div>
+
+  <div class="app-main">
+    <header class="topbar">
+      <button class="iconbutton topbar__menu" id="menu-btn" type="button" aria-label="打开导航"></button>
+      <div class="topbar__lead">
+        <nav class="breadcrumb" id="breadcrumb" aria-label="位置"></nav>
+        <div class="topbar__titlerow">
+          <h1 class="topbar__title" id="view-title" data-slot="header.title"></h1>
+          <span class="topbar__badge" id="view-badge"></span>
+        </div>
+      </div>
+      <div class="topbar__actions" data-slot="header.right"></div>
+      <div class="topbar__side" data-slot="header.left"></div>
+      <button class="iconbutton topbar__search" id="command-trigger-mobile" type="button" aria-label="搜索"></button>
+      <button class="iconbutton topbar__mobile" id="theme-btn-mobile" type="button" aria-label="切换主题"></button>
+    </header>
+
+    <div class="app-scroll" id="scroll">
+      <main class="app-content" id="content">
+        <div data-slot="view.top"></div>
+        <div id="view-root"></div>
+        <div data-slot="view.bottom"></div>
+        <footer class="app-footer" id="app-footer"></footer>
+      </main>
+    </div>
+
+    <nav class="app-tabbar" id="tabbar" aria-label="标签栏"></nav>
+  </div>
+</div>
+
+<div id="notify-stack" class="notify-stack" aria-live="polite"></div>
+<div id="toast-stack" class="toast-stack" aria-live="polite"></div>
+<div id="layer"></div>
+<div id="overlay"></div>
+<div id="tooltip" class="tooltip" role="tooltip" hidden></div>
+
+<script src="js/core/util.js"></script>
+<script src="js/core/icons.js"></script>
+<script src="js/core/state.js"></script>
+<script src="js/core/dom.js"></script>
+<script src="js/core/platform.js"></script>
+<script src="js/core/ui-core.js"></script>
+<script src="js/core/mods.js"></script>
+<script src="js/core/registry.js"></script>
+<script src="js/components/primitives.js"></script>
+<script src="js/components/widgets.js"></script>
+<script src="js/views/main.js"></script>
+<script src="js/views/docs.js"></script>
+<script src="js/views/system.js"></script>
+<script src="js/modules/demos.js"></script>
+<script src="js/boot.js"></script>
+</body>
+</html>
