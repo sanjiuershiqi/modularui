@@ -31,15 +31,17 @@
   function signal(initial) {
     var value = initial;
     var subs = new Set();
+    var deps = new Set(); /* effects that read this signal */
     var self = {
-      get value() { return value; },
-      get: function () { return value; },
+      get value() { trackDep(deps); return value; },
+      get: function () { trackDep(deps); return value; },
       peek: function () { return value; },
       set: function (next) {
         var v = typeof next === 'function' ? next(value) : next;
         if (Object.is(v, value)) return value;
         value = v;
         subs.forEach(function (fn) { schedule(function () { try { fn(value); } catch (e) { console.error('[signal]', e); } }); });
+        deps.forEach(function (job) { schedule(function () { if (job.active) job.run(); }); });
         return value;
       },
       update: function (fn) { return self.set(fn); },
@@ -70,6 +72,13 @@
     var deps = targetMap.get(target); if (!deps) return;
     var dep = deps.get(key); if (!dep) return;
     dep.forEach(function (job) { schedule(function () { if (job.active) job.run(); }); });
+  }
+  /* register the active effect as depending on an arbitrary dependency set
+     (used by signals so MUI.effect/MUI.bind react to signal.get()) */
+  function trackDep(depSet) {
+    if (!activeEffect) return;
+    depSet.add(activeEffect);
+    if (activeEffect.deps.indexOf(depSet) === -1) activeEffect.deps.push(depSet);
   }
   function reactive(obj) {
     var seen = new WeakMap();

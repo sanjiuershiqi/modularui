@@ -66,6 +66,8 @@
       var checkState = MUI.signal(true);
       var radioValue = '标准';
       var sliderValue = 64;
+      var disposers = [];
+      function scoped(render) { var out; disposers.push(MUI.scope(function () { out = render(); })); return out; }
 
       var body = [
         ui.banner({ tone: 'accent', title: '39 个内置组件', text: '每个组件都是纯 hyperscript 工厂，可在运行时被模块覆盖或替换。' }),
@@ -159,6 +161,43 @@
           ] }) })
         ] }),
 
+        ui.section({ id: 'c-reactive', title: '响应式绑定', icon: 'activity', children: ui.masonry({ min: '260px', children: [
+          specimen('MUI.text / signal', '文本随 signal 更新', scoped(function () {
+            var n = MUI.signal(0);
+            return h('div', { class: 'stack' }, [
+              h('div', { class: 'row', style: 'gap:12px;align-items:center' }, [
+                ui.button({ label: '−', size: 'sm', onClick: function () { n.update(function (v) { return v - 1; }); } }),
+                h('strong', { class: 'mono', style: 'font-size:var(--fs-xl);min-width:2.4em;text-align:center' }, MUI.text(n)),
+                ui.button({ label: '+', size: 'sm', variant: 'primary', onClick: function () { n.update(function (v) { return v + 1; }); } })
+              ]),
+              h('div', { class: 't-caption', text: '数字是 MUI.text(signal)，只更新该文本节点。' })
+            ]);
+          })),
+          specimen('MUI.bind', '依赖变化时重渲染', scoped(function () {
+            var name = MUI.signal('ModularUI');
+            return MUI.bind(function () {
+              return h('div', { class: 'panel', style: 'font-family:var(--mono)' }, 'hello, ' + name.get());
+            });
+          })),
+          specimen('MUI.list', '响应式列表', scoped(function () {
+            var items = MUI.signal([{ t: '模块内核', done: true }, { t: '组件注册表', done: true }, { t: '响应式绑定', done: false }]);
+            var host = MUI.list(items, function (it) {
+              return h('div', { class: 'row', style: 'gap:8px;padding:4px 0' }, ui.checkbox({
+                label: it.t, checked: it.done,
+                onChange: function (v) {
+                  items.update(function (arr) { return arr.map(function (x) { return x === it ? Object.assign({}, x, { done: v }) : x; }); });
+                }
+              }));
+            });
+            return h('div', { class: 'stack' }, [
+              host,
+              h('button', { class: 'btn btn--outline btn--sm', type: 'button', text: '添加一项', onClick: function () {
+                items.update(function (a) { return a.concat([{ t: '新任务 ' + (a.length + 1), done: false }]); });
+              } })
+            ]);
+          }))
+        ] }) }),
+
         ui.section({ id: 'c-nav', title: '导航与折叠', icon: 'layers', children: ui.masonry({ min: '260px', children: [
           specimen('tabs', '标签页', ui.tabs({ items: [
             { label: '概览', render: function () { return h('p', { class: 't-body', text: '标签页内容区域，可放置任意节点。' }); } },
@@ -208,12 +247,16 @@
         { id: 'c-forms', label: '表单' },
         { id: 'c-data', label: '数据展示' },
         { id: 'c-table', label: '表格与时间线' },
+        { id: 'c-reactive', label: '响应式绑定' },
         { id: 'c-nav', label: '导航与折叠' },
         { id: 'c-feedback', label: '反馈与覆盖层' },
         { id: 'c-type', label: '排版' }
       ], body);
       var view = h('div', { class: 'view' }, [toc]);
-      view.__cleanup = toc.__cleanup;
+      view.__cleanup = function () {
+        if (toc.__cleanup) toc.__cleanup();
+        disposers.forEach(function (d) { try { d(); } catch (e) {} });
+      };
       return view;
     }
   });
@@ -267,6 +310,22 @@
           ['ctx.http / setTimeout', '需要 http / timers 权限'],
           ['ctx.expose(obj) / require(id)', '模块间通信'],
           ['ctx.setting(item) / command(cmd) / hotkey(k, fn)', '注册扩展点']
+        ] },
+        { title: '响应式绑定', icon: 'activity', rows: [
+          ['MUI.scope(fn) / MUI.Scope', '作用域，统一回收副作用（返回 dispose）'],
+          ['MUI.text(signal)', '绑定到 signal 的文本节点'],
+          ['MUI.bind(render)', '响应式容器：依赖的 signal 变化时重渲染'],
+          ['MUI.list(source, renderItem)', '响应式列表'],
+          ['MUI.persist(signal, key, ns)', 'signal ↔ 本地存储双向绑定'],
+          ['MUI.resource(fetcher)', '异步资源：loading / data / error / reload()'],
+          ['ctx.bind / ctx.list / ctx.resource', '模块内等价方法（随停用自动回收）']
+        ] },
+        { title: 'DOM 工具', icon: 'grid', rows: [
+          ['MUI.observer(el, cb)', 'ResizeObserver 封装'],
+          ['MUI.intersect(el, cb, opt)', 'IntersectionObserver 封装'],
+          ['MUI.drag(el, { start, move, end })', '指针拖拽'],
+          ['MUI.autoDispose(fn)', '把清理器登记到当前作用域'],
+          ['MUI.h / MUI.svg / MUI.icon', 'hyperscript / SVG / 图标']
         ] }
       ];
       var body = [

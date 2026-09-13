@@ -294,6 +294,17 @@
         return o.exports;
       },
 
+      /* reactive bindings — scoped to the module, auto-disposed on deactivate */
+      scope: function (fn) { var d = MUI.scope(fn); own(d); return d; },
+      text: function (source) { var n; own(MUI.scope(function () { n = MUI.text(source); })); return n; },
+      bind: function (render) { var n; own(MUI.scope(function () { n = MUI.bind(render); })); return n; },
+      list: function (source, item) { var n; own(MUI.scope(function () { n = MUI.list(source, item); })); return n; },
+      resource: function (fetcher) { var r; own(MUI.scope(function () { r = MUI.resource(fetcher); })); return r; },
+      persist: function (sig, key) { return MUI.persist(sig, key, 'mod:' + id); },
+      observer: function (el, cb) { var off = MUI.observer(el, cb); own(off); return off; },
+      intersect: function (el, cb, opt) { var off = MUI.intersect(el, cb, opt); own(off); return off; },
+      drag: function (el, hh) { var off = MUI.drag(el, hh); own(off); return off; },
+
       /* misc */
       onDispose: own,
       dispose: own,
