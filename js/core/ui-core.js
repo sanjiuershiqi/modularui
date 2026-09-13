@@ -123,11 +123,15 @@
       }));
     }
 
+    /* update route state synchronously so callers and the active-state
+       handler always see the new route, even when the view-transition
+       swap callback runs on a later frame */
+    current = name; currentParams = params || {};
+
     function swap() {
       var host = $('view-root');
       MUI.clear(host);
       if (node) host.appendChild(node);
-      current = name; currentParams = params || {};
       var titleSlot = (slotMap.get('header.title') || []).length;
       var title = $('view-title');
       if (!titleSlot) { title.textContent = MUI.hooks.applyFilters('route:title', def.title || name, def); }
@@ -138,18 +142,18 @@
       renderBreadcrumb(def);
       $('scroll').scrollTop = 0;
       renderAllSlots();
+      /* lifecycle + active state run after the new DOM is in place */
+      if (def.onEnter) { try { def.onEnter(ctx); } catch (e) { console.error(e); } }
+      MUI.hooks.doAction('route:afterRender', name, currentParams, def);
+      MUI.hooks.doAction('route:mounted', name, $('view-root'), ctx);
+      MUI.bus.emit('router:navigate', name, currentParams);
+      try { if (location.hash !== '#' + name) history.replaceState(null, '', '#' + name); } catch (e) {}
+      closeSidebar();
     }
 
-    if (!opts.replace && !opts.noTransition && document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches && current) {
+    if (!opts.replace && !opts.noTransition && document.startViewTransition && !matchMedia('(prefers-reduced-motion: reduce)').matches && $('view-root').firstElementChild) {
       try { document.startViewTransition(swap); } catch (e) { swap(); }
     } else swap();
-
-    if (def.onEnter) { try { def.onEnter(ctx); } catch (e) { console.error(e); } }
-    MUI.hooks.doAction('route:afterRender', name, currentParams, def);
-    MUI.hooks.doAction('route:mounted', name, $('view-root'), ctx);
-    MUI.bus.emit('router:navigate', name, currentParams);
-    try { if (location.hash !== '#' + name) history[opts.replace ? 'replaceState' : 'replaceState'](null, '', '#' + name); } catch (e) {}
-    closeSidebar();
     return true;
   }
   function renderBreadcrumb(def) {
