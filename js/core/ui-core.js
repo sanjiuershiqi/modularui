@@ -128,8 +128,18 @@
        swap callback runs on a later frame */
     current = name; currentParams = params || {};
 
+    function disposeTree(node) {
+      if (!node || node.nodeType !== 1) return;
+      var children = Array.prototype.slice.call(node.children || []);
+      children.forEach(disposeTree);
+      if (typeof node.__cleanup === 'function' && !node.__cleaned) {
+        node.__cleaned = true;
+        try { node.__cleanup(); } catch (e) { console.error('[view cleanup]', e); }
+      }
+    }
     function swap() {
       var host = $('view-root');
+      disposeTree(host);
       MUI.clear(host);
       if (node) host.appendChild(node);
       var titleSlot = (slotMap.get('header.title') || []).length;

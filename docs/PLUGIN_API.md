@@ -460,6 +460,17 @@ MUI.defineModule({
 9. **性能**：`MUI.bind` 每次依赖变化整体重渲染其容器，列表较大时用 `MUI.list` 或配合 key 手动优化。
 10. **不要**在 `activate` 外保存 `ctx` 并延时使用——停用后 `ctx` 已失效。
 
+### 13.1 性能维护约定
+
+- 高频状态更新使用 `MUI.batch(() => { ... })`，避免同一帧重复调度。
+- 页面内的 `MUI.bind`、`MUI.list`、`MUI.resource` 应放在 `ctx.scope` 或视图的清理作用域中。
+- 插件不要直接监听 `window`、`document`、`MUI.bus` 后丢弃返回的清理函数；统一用 `ctx.on`、`ctx.hotkey`、`ctx.observer` 等 API。
+- 大列表不要在每次事件中手工 `innerHTML` 全量重绘；使用局部 `MUI.bind`，或把数据拆成分页/虚拟化区域。
+- 轮询应使用 `ctx.setInterval`，不要直接使用全局 `setInterval`，这样停用模块时才能自动取消。
+- 日志使用 `ctx.log`，不要在高频循环中输出大量 `console.log`；运行日志最多保留 600 条。
+- 图表、瀑布流等组件必须在宽度变化时才重排，不要在高度变化或滚动事件中反复重建 DOM。
+- 自定义组件的 class 必须使用模块前缀（例如 `.acme-analytics-*`），避免覆盖其它模块。
+
 ---
 
 ## 14. 让 AI 生成插件的建议提示词

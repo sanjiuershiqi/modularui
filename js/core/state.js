@@ -23,7 +23,7 @@
     var jobs = Array.from(queue); queue.clear();
     for (var i = 0; i < jobs.length; i++) { try { jobs[i](); } catch (e) { console.error('[state]', e); } }
     flushing = false;
-    if (queue.size) schedule(function () {});
+    if (queue.size) flush();
   }
   function batch(fn) { depth++; try { return fn(); } finally { depth--; if (depth === 0 && queue.size) schedule(function () {}); } }
 
@@ -41,7 +41,7 @@
         if (Object.is(v, value)) return value;
         value = v;
         subs.forEach(function (fn) { schedule(function () { try { fn(value); } catch (e) { console.error('[signal]', e); } }); });
-        deps.forEach(function (job) { schedule(function () { if (job.active) job.run(); }); });
+        deps.forEach(function (job) { if (job.active) schedule(job.run); });
         return value;
       },
       update: function (fn) { return self.set(fn); },
@@ -71,7 +71,7 @@
   function trigger(target, key) {
     var deps = targetMap.get(target); if (!deps) return;
     var dep = deps.get(key); if (!dep) return;
-    dep.forEach(function (job) { schedule(function () { if (job.active) job.run(); }); });
+    dep.forEach(function (job) { if (job.active) schedule(job.run); });
   }
   /* register the active effect as depending on an arbitrary dependency set
      (used by signals so MUI.effect/MUI.bind react to signal.get()) */

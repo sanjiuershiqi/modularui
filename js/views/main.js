@@ -20,8 +20,8 @@
       });
     }
     paint();
-    MUI.bus.on('mods:changed', paint);
-    return ui.card({
+    var off = MUI.bus.on('mods:changed', paint);
+    var card = ui.card({
       title: '内核运行时', icon: 'cpu', subtitle: 'kernel · live',
       actions: [ui.badge({ text: 'API ' + MUI.mods.API_VERSION, tone: 'accent' })],
       children: [
@@ -35,6 +35,8 @@
         ])
       ]
     });
+    card.__cleanup = off;
+    return card;
   }
 
   router.register('home', {
