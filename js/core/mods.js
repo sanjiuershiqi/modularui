@@ -339,6 +339,10 @@
         var dep = modules.get(depId);
         if (!dep) { problems.push(depId + '@' + requires[depId] + '（未安装）'); continue; }
         if (!semver.satisfies(dep.version, requires[depId])) { problems.push(depId + '@' + requires[depId] + '（当前 ' + dep.version + '）'); continue; }
+        if ((dep.state === 'resolving' || dep.state === 'activating') && dep._activating) {
+          problems.push(depId + '（循环依赖）');
+          continue;
+        }
         if (dep.state !== 'active') {
           var ok = await doActivate(dep);
           if (!ok) problems.push(depId + '（未能激活）');
