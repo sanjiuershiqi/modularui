@@ -432,8 +432,27 @@
   }
 
   /* ---------------------------------------------------------------- public */
+  function validateManifest(manifest) {
+    var errors = [], warnings = [];
+    if (!manifest || typeof manifest !== 'object') errors.push('manifest 必须是对象');
+    else {
+      if (!manifest.id || !/^[a-z0-9]+(?:[._-][a-z0-9]+)+$/i.test(manifest.id)) errors.push('id 必须使用 vendor.name 格式');
+      if (manifest.version && !semver.valid(manifest.version)) errors.push('version 不是合法 semver');
+      if (manifest.apiVersion && !String(manifest.apiVersion).trim()) errors.push('apiVersion 不能为空');
+      ['requires', 'optional'].forEach(function (k) { if (manifest[k] != null && !util.isPlain(manifest[k])) errors.push(k + ' 必须是 {id: range}'); });
+      if (manifest.permissions && !Array.isArray(manifest.permissions)) errors.push('permissions 必须是数组');
+      (manifest.permissions || []).forEach(function (p) { if (!CAP_DEFAULT.hasOwnProperty(p)) warnings.push('未知 capability: ' + p); });
+      if (manifest.config && !util.isPlain(manifest.config)) errors.push('config 必须是对象');
+      ['preload', 'install', 'activate', 'setup', 'deactivate', 'uninstall', 'migrate'].forEach(function (k) {
+        if (manifest[k] != null && typeof manifest[k] !== 'function') errors.push(k + ' 必须是函数');
+      });
+    }
+    return { valid: errors.length === 0, errors: errors, warnings: warnings };
+  }
   function define(manifest, setup) {
     if (!manifest || !manifest.id) throw new Error('[mods] manifest.id 为必填项');
+    var validation = validateManifest(manifest);
+    if (!validation.valid) throw new Error('[mods] 清单无效: ' + validation.errors.join('；'));
     if (modules.has(manifest.id)) { console.warn('[mods] 重复注册:', manifest.id); return modules.get(manifest.id); }
     manifest = Object.assign({}, manifest);
     if (setup && !manifest.activate) manifest.activate = setup;
@@ -467,8 +486,11 @@
     capabilities: CAP_DEFAULT, capabilityLabels: CAP_LABEL,
     define: define,
     register: define,
+    validate: validateManifest,
     enable: function (id) { var m = modules.get(id); return m ? doActivate(m) : Promise.resolve(false); },
     disable: function (id) { var m = modules.get(id); return m ? doDeactivate(m) : Promise.resolve(false); },
+    enableAll: function () { return Promise.all(list().map(function (m) { return doActivate(m); })); },
+    disableAll: function () { return Promise.all(list().filter(function (m) { return m.state === 'active'; }).reverse().map(doDeactivate)); },
     reload: function (id) {
       var m = modules.get(id); if (!m) return Promise.resolve(false);
       return doDeactivate(m).then(function () { m.installed = false; return doActivate(m); });
@@ -484,9 +506,22 @@
     },
     get: function (id) { return modules.get(id); },
     info: function (id) { var m = modules.get(id); return m ? moduleInfo(m) : null; },
+    state: function (id) { var m = modules.get(id); return m ? m.state : null; },
     has: function (id) { return modules.has(id); },
     list: publicList,
     require: function (id) { var m = modules.get(id); return m && m.state === 'active' ? m.exports : null; },
+    waitFor: function (id, timeout) {
+      var m = modules.get(id), limit = timeout || 10000;
+      if (m && m.state === 'active') return Promise.resolve(moduleInfo(m));
+      return new Promise(function (resolve, reject) {
+        var timer = setTimeout(function () { off(); reject(new Error('等待模块超时: ' + id)); }, limit);
+        var off = MUI.bus.on('mod:state', function (info) {
+          if (info.id !== id) return;
+          if (info.state === 'active') { clearTimeout(timer); off(); resolve(info); }
+          else if (info.state === 'error') { clearTimeout(timer); off(); reject(new Error(info.error || ('模块激活失败: ' + id))); }
+        });
+      });
+    },
     load: function (url, opt) {
       opt = opt || {};
       var before = new Set(modules.keys());

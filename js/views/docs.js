@@ -268,7 +268,10 @@
       var refs = [
         { title: '内核', icon: 'cpu', rows: [
           ['MUI.mods.define(manifest, setup)', '定义并注册模块'],
+          ['MUI.mods.validate(manifest)', '安装前校验清单'],
           ['MUI.mods.enable/disable/reload/uninstall(id)', '生命周期控制'],
+          ['MUI.mods.enableAll/disableAll()', '批量生命周期控制'],
+          ['MUI.mods.waitFor(id, timeout)', '等待模块激活完成'],
           ['MUI.mods.load(url)', '从 URL 远程加载模块'],
           ['MUI.mods.list()/info(id)/diagnostics()', '查询模块状态'],
           ['MUI.mods.graph()', '依赖图（节点与边）']

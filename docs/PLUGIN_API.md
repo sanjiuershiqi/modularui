@@ -316,7 +316,21 @@ MUI.Scope / MUI.scope(fn) / MUI.text / MUI.bind / MUI.list / MUI.persist / MUI.r
 MUI.app.ready(fn) / MUI.app.on/emit
 ```
 
-模块内核：`MUI.mods.{define,enable,disable,reload,uninstall,get,info,list,has,require,load,graph,diagnostics,onChange}`
+模块内核：`MUI.mods.{define,register,validate,enable,disable,enableAll,disableAll,reload,uninstall,get,info,state,waitFor,list,has,require,load,graph,diagnostics,onChange}`
+
+### 6.1 生产环境模块治理接口
+
+```js
+const result = MUI.mods.validate(manifest);
+// { valid: boolean, errors: string[], warnings: string[] }
+
+await MUI.mods.enableAll();
+await MUI.mods.disableAll();
+await MUI.mods.waitFor('acme.analytics', 10000);
+MUI.mods.state('acme.analytics');
+```
+
+`validate()` 适合在安装、CI 或远程加载前调用；`waitFor()` 适合宿主在模块异步激活后再挂载依赖 UI。生产系统应在调用 `load()` 后检查返回的模块信息与 `error`，不要只依赖 `autoEnable`。
 
 ---
 
