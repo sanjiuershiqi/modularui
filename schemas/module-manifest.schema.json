@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sanjiuershiqi.github.io/modularui/schemas/module-manifest.schema.json",
+  "title": "ModularUI Module Manifest",
+  "type": "object",
+  "required": ["id", "version"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9]+(?:[._-][A-Za-z0-9]+)+$",
+      "description": "Globally unique reverse-domain module id, for example acme.analytics."
+    },
+    "name": { "type": "string" },
+    "version": {
+      "type": "string",
+      "pattern": "^v?[0-9]+(?:\\.[0-9]+){0,2}(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+    },
+    "apiVersion": { "type": "string", "default": "*" },
+    "author": {
+      "oneOf": [
+        { "type": "string" },
+        { "type": "object", "required": ["name"], "additionalProperties": false, "properties": { "name": { "type": "string" }, "url": { "type": "string", "format": "uri" } } }
+      ]
+    },
+    "description": { "type": "string" },
+    "icon": { "type": "string" },
+    "homepage": { "type": "string", "format": "uri" },
+    "license": { "type": "string" },
+    "requires": { "type": "object", "additionalProperties": { "type": "string" } },
+    "optional": { "type": "object", "additionalProperties": { "type": "string" } },
+    "permissions": { "type": "array", "uniqueItems": true, "items": { "type": "string" } },
+    "config": {
+      "type": "object",
+      "additionalProperties": {
+        "oneOf": [
+          { "type": "string" }, { "type": "number" }, { "type": "boolean" },
+          {
+            "type": "object",
+            "required": ["default"],
+            "additionalProperties": false,
+            "properties": {
+              "type": { "enum": ["string", "number", "boolean", "select"] },
+              "default": {}, "label": { "type": "string" }, "description": { "type": "string" },
+              "min": { "type": "number" }, "max": { "type": "number" },
+              "options": { "type": "array", "items": {} }
+            }
+          }
+        ]
+      }
+    },
+    "storageVersion": { "type": "integer", "minimum": 1, "default": 1 },
+    "timeout": { "type": "integer", "minimum": 100, "default": 6000 },
+    "autoEnable": { "type": "boolean", "default": true },
+    "builtin": { "type": "boolean", "default": false },
+    "remote": { "type": "boolean", "default": false }
+  }
+}

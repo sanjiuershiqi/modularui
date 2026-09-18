@@ -1,0 +1,22 @@
+{
+  "$schema": "../schemas/module-manifest.schema.json",
+  "id": "acme.analytics",
+  "name": "Analytics",
+  "version": "1.2.0",
+  "apiVersion": "^2.0.0",
+  "author": { "name": "Acme" },
+  "description": "Example production-style module manifest.",
+  "requires": { "acme.core": "^1.0.0" },
+  "permissions": ["timers"],
+  "config": {
+    "interval": {
+      "type": "number",
+      "default": 1500,
+      "label": "采样间隔",
+      "min": 500,
+      "max": 20000
+    }
+  },
+  "storageVersion": 1,
+  "autoEnable": true
+}

@@ -3,6 +3,9 @@
 面向模块作者（含 AI 代码生成）。按本文即可编写、注册、调试一个模块。
 框架零构建、无依赖；模块就是「一个清单对象 + 若干生命周期函数」。
 
+> 第一阶段 SDK 文件：`types/modularui.d.ts`、`schemas/module-manifest.schema.json`、`templates/module.template.js`、`examples/module-manifest.json`。
+> 如果编辑器支持 JSON Schema，可以把 manifest 文件的 `$schema` 指向 `../schemas/module-manifest.schema.json`。
+
 ---
 
 ## 0. 最小可用模块
@@ -494,3 +497,41 @@ MUI.defineModule({
 > 要求：用 `MUI.defineModule`；声明所需 `permissions`；用 `ctx.slot`/`ctx.view` 注入界面；
 > 用 `ctx.config` 暴露配置；用 `ctx.store` 持久化；跨模块用 `ctx.expose/require`；
 > 所有资源通过 `ctx` 注册以便自动回收。只输出该模块的 JS 文件。
+
+## 15. TypeScript 与 Manifest 工作流
+
+项目提供 `types/modularui.d.ts`，插件可以直接使用：
+
+```ts
+/// <reference path="../types/modularui.d.ts" />
+
+const moduleDefinition: ModuleManifest = {
+  id: 'acme.analytics',
+  version: '1.0.0',
+  apiVersion: '^2.0.0',
+  permissions: ['timers'],
+  config: { interval: { type: 'number', default: 1500 } },
+  activate(ctx: ModuleContext) {
+    ctx.setInterval(() => ctx.log('tick'), ctx.getConfig<number>('interval'));
+  }
+};
+
+MUI.defineModule(moduleDefinition);
+```
+
+Manifest 与运行时代码建议分离：
+
+```text
+plugin/
+  manifest.json       # 可用 JSON Schema 校验
+  index.js            # 调用 MUI.defineModule()
+```
+
+AI 生成模块时必须先完成这几项检查：
+
+1. `id` 使用唯一的 `vendor.name` 格式；
+2. `version` 与 `apiVersion` 使用合法 semver；
+3. 访问网络、定时器、剪贴板时声明对应 permission；
+4. 所有监听、定时器、DOM 观察器通过 `ctx` 注册；
+5. 停用模块后不得残留事件、样式、路由、插槽或响应式 effect；
+6. 在提交前运行 `MUI.mods.validate(manifest)`。

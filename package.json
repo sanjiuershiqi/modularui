@@ -1,0 +1,22 @@
+{
+  "name": "modularui",
+  "version": "2.0.0",
+  "private": false,
+  "description": "A zero-build modular application kernel for browser plugins.",
+  "license": "MIT",
+  "type": "commonjs",
+  "types": "types/modularui.d.ts",
+  "files": [
+    "index.html",
+    "css",
+    "js",
+    "types",
+    "schemas",
+    "templates",
+    "examples",
+    "docs"
+  ],
+  "scripts": {
+    "check": "node --check js/boot.js"
+  }
+}

@@ -20,6 +20,10 @@
 ## 文档
 
 - **插件 / 模块开发文档**：[`docs/PLUGIN_API.md`](docs/PLUGIN_API.md) —— 清单字段、生命周期、能力权限、`ctx` 全量 API、事件与钩子、内置组件、完整模板与常见坑。面向模块作者与 AI 代码生成。
+- **TypeScript SDK 类型**：[`types/modularui.d.ts`](types/modularui.d.ts)
+- **Manifest JSON Schema**：[`schemas/module-manifest.schema.json`](schemas/module-manifest.schema.json)
+- **插件模板**：[`templates/module.template.js`](templates/module.template.js)
+- **Manifest 示例**：[`examples/module-manifest.json`](examples/module-manifest.json)
 
 ## 运行 / 开发
 
