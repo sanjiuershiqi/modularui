@@ -61,6 +61,15 @@ export interface Signal<T> {
   subscribe(listener: (value: T) => void, immediate?: boolean): Dispose;
 }
 
+export interface StateAPI {
+  signal<T>(initial: T): Signal<T>;
+  computed<T>(fn: () => T): Signal<T>;
+  effect(fn: () => void): Dispose;
+  reactive<T extends object>(value: T): T;
+  watch<T>(source: Signal<T> | (() => T), listener: (value: T) => void): Dispose;
+  batch<T>(fn: () => T): T;
+}
+
 export interface Resource<T> {
   data: Signal<T | null>;
   error: Signal<unknown | null>;
@@ -97,7 +106,8 @@ export interface ComponentRegistry {
 }
 
 export interface UI {
-  [component: string]: ((props?: Record<string, unknown>, ...children: NodeValue[]) => Node) | unknown;
+  // Components are registered dynamically, so the index signature is intentionally callable.
+  [component: string]: any;
   h: typeof MUI.h;
   icon(name: string, size?: number, stroke?: number): SVGElement;
   use(name: string, props?: Record<string, unknown>, ...children: NodeValue[]): Node;
@@ -213,7 +223,7 @@ export interface ModuleContext {
   readonly icon: typeof MUI.icon;
   readonly utils: typeof MUI.util;
   readonly components: ComponentRegistry;
-  readonly signals: typeof MUI.state;
+  readonly signals: StateAPI;
   readonly theme: ThemeAPI;
   readonly i18n: { register(locale: string, dictionary: Record<string, string>): void; t(key: string, vars?: Record<string, unknown>): string; locale(): string };
   readonly permissions: { has(capability: Permission): boolean; list(): Permission[] };
@@ -339,7 +349,7 @@ export interface AppFacade {
   mods: ModsAPI;
   router: Router;
   theme: ThemeAPI;
-  state: typeof MUI.state;
+  state: StateAPI;
   logs: typeof MUI.logs;
   scope: typeof MUI.scope;
   text: typeof MUI.text;
@@ -368,6 +378,12 @@ export interface MUIRoot extends AppFacade {
 
 declare global {
   const MUI: MUIRoot;
+  type ModuleManifest = import('./modularui').ModuleManifest;
+  type ModuleContext = import('./modularui').ModuleContext;
+  type ModuleInfo = import('./modularui').ModuleInfo;
+  type Signal<T> = import('./modularui').Signal<T>;
+  type Resource<T> = import('./modularui').Resource<T>;
+  type Store = import('./modularui').Store;
   interface Window { MUI: MUIRoot; }
 }
 

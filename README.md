@@ -24,6 +24,7 @@
 - **Manifest JSON Schema**：[`schemas/module-manifest.schema.json`](schemas/module-manifest.schema.json)
 - **插件模板**：[`templates/module.template.js`](templates/module.template.js)
 - **Manifest 示例**：[`examples/module-manifest.json`](examples/module-manifest.json)
+- **TypeScript 插件示例**：[`examples/typed-module.ts`](examples/typed-module.ts)
 
 ## 运行 / 开发
 
