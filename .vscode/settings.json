@@ -1,0 +1,16 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "examples/*manifest*.json",
+        "plugins/**/*manifest*.json",
+        "plugins/**/*.module.json"
+      ],
+      "url": "../schemas/module-manifest.schema.json"
+    }
+  ],
+  "javascript.validate.enable": true,
+  "editor.quickSuggestions": {
+    "strings": true
+  }
+}

@@ -33,6 +33,35 @@
 python -m http.server 8000     # 然后访问 http://localhost:8000
 ```
 
+### 在 VS Code 中开发插件
+
+项目已包含 `jsconfig.json` 与 `.vscode/settings.json`：
+
+1. 用 VS Code 打开仓库根目录；
+2. 从 `templates/module.template.js` 复制一个插件模板到 `plugins/`；
+3. 编辑器会自动识别全局 `MUI`、`ModuleContext`、`ModuleManifest` 等类型；
+4. 新建 `plugins/my-module.manifest.json` 时，会自动启用 `schemas/module-manifest.schema.json` 校验；
+5. 如果提示找不到 TypeScript 类型，可安装项目依赖后重载窗口：
+
+```bash
+npm install -D typescript
+```
+
+也可以在插件文件顶部显式引用类型：
+
+```js
+/// <reference path="../types/modularui.d.ts" />
+
+MUI.defineModule({
+  id: 'acme.example',
+  version: '1.0.0',
+  apiVersion: '^2.0.0',
+  activate(ctx) {
+    ctx.log('ready');
+  }
+});
+```
+
 ## 目录结构
 
 ```
