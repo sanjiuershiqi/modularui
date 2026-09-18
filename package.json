@@ -17,6 +17,11 @@
     "docs"
   ],
   "scripts": {
-    "check": "node --check js/boot.js"
+    "check": "node --check js/boot.js",
+    "typecheck:plugins": "tsc --noEmit",
+    "build:plugins": "tsc -p tsconfig.plugins.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
   }
 }

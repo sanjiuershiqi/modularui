@@ -519,6 +519,20 @@ const moduleDefinition: ModuleManifest = {
 MUI.defineModule(moduleDefinition);
 ```
 
+仓库提供了直接构建路径：
+
+```bash
+npm install
+npm run typecheck:plugins
+npm run build:plugins
+```
+
+`build:plugins` 会把 `plugins/*.ts` 编译到 `dist/plugins/*.js`，然后通过相对路径加载：
+
+```js
+await MUI.mods.load('./dist/plugins/typed-module.js');
+```
+
 Manifest 与运行时代码建议分离：
 
 ```text

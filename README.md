@@ -50,6 +50,34 @@ npm install -D typescript
 
 `.js` 插件使用 `jsconfig.json`；`.ts` 插件使用仓库根目录的 `tsconfig.json`。当前项目不负责把 TypeScript 编译成浏览器脚本，生产插件可以用自己的构建工具输出最终 `.js` 文件，再通过 `MUI.mods.load()` 或 `<script>` 加载。
 
+### 编译并加载 TypeScript 插件
+
+安装开发依赖：
+
+```bash
+npm install
+```
+
+类型检查：
+
+```bash
+npm run typecheck:plugins
+```
+
+把插件放入 `plugins/` 后编译：
+
+```bash
+npm run build:plugins
+```
+
+输出文件在 `dist/plugins/`，然后在浏览器控制台或宿主代码中加载：
+
+```js
+await MUI.mods.load('./dist/plugins/my-module.js');
+```
+
+GitHub Pages 部署时同样使用相对路径，适用于 `/modularui/` 子路径。
+
 也可以在插件文件顶部显式引用类型：
 
 ```js

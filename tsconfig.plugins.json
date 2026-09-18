@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "dist/plugins",
+    "rootDir": "plugins",
+    "declaration": false,
+    "sourceMap": true
+  },
+  "include": ["plugins/**/*.ts"]
+}
