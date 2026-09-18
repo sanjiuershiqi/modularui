@@ -47,6 +47,8 @@ python -m http.server 8000     # 然后访问 http://localhost:8000
 npm install -D typescript
 ```
 
+`.js` 插件使用 `jsconfig.json`；`.ts` 插件使用仓库根目录的 `tsconfig.json`。当前项目不负责把 TypeScript 编译成浏览器脚本，生产插件可以用自己的构建工具输出最终 `.js` 文件，再通过 `MUI.mods.load()` 或 `<script>` 加载。
+
 也可以在插件文件顶部显式引用类型：
 
 ```js
